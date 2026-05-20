@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -13,6 +13,10 @@ interface SafeUser {
   created_at: string;
 }
 
+// Context so child pages don't re-fetch auth
+const UserContext = createContext<SafeUser | null>(null);
+export const useUser = () => useContext(UserContext);
+
 export default function DashboardLayout({
   children,
 }: {
@@ -23,6 +27,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   useEffect(() => {
+    let cancelled = false;
     async function checkAuth() {
       try {
         const res = await fetch('/api/auth/me');
@@ -31,14 +36,15 @@ export default function DashboardLayout({
           return;
         }
         const data = await res.json();
-        setUser(data.user);
+        if (!cancelled) setUser(data.user);
       } catch {
         window.location.href = '/auth';
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     checkAuth();
+    return () => { cancelled = true; };
   }, []);
 
   async function handleLogout() {
@@ -66,62 +72,64 @@ export default function DashboardLayout({
   ];
 
   return (
-    <div className="min-h-screen flex bg-cream">
-      {/* Sidebar */}
-      <aside className="w-64 bg-surface border-r border-border flex flex-col shrink-0">
-        {/* Brand */}
-        <div className="px-6 py-5 border-b border-border">
-          <Link href="/dashboard" className="inline-block">
-            <h2
-              className="text-xl font-bold text-text tracking-tight"
-              style={{ fontFamily: 'var(--font-heading), serif' }}
-            >
-              Plate
-            </h2>
-          </Link>
-          <p className="text-xs text-muted mt-0.5 truncate">
-            {user.restaurant_name}
-          </p>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-primary/10 text-primary'
-                    : 'text-muted hover:text-text hover:bg-cream'
-                }`}
+    <UserContext.Provider value={user}>
+      <div className="min-h-screen flex bg-cream">
+        {/* Sidebar */}
+        <aside className="w-64 bg-surface border-r border-border flex flex-col shrink-0">
+          {/* Brand */}
+          <div className="px-6 py-5 border-b border-border">
+            <Link href="/dashboard" className="inline-block">
+              <h2
+                className="text-xl font-bold text-text tracking-tight"
+                style={{ fontFamily: 'var(--font-heading), serif' }}
               >
-                <item.icon active={isActive} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+                Plate
+              </h2>
+            </Link>
+            <p className="text-xs text-muted mt-0.5 truncate">
+              {user.restaurant_name}
+            </p>
+          </div>
 
-        {/* User & Logout */}
-        <div className="px-6 py-4 border-t border-border">
-          <p className="text-xs text-muted truncate">{user.email}</p>
-          <button
-            onClick={handleLogout}
-            className="mt-2 text-xs text-muted hover:text-primary transition-colors"
-          >
-            Sign out
-          </button>
-        </div>
-      </aside>
+          {/* Nav */}
+          <nav className="flex-1 px-3 py-4 space-y-1">
+            {navItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted hover:text-text hover:bg-cream'
+                  }`}
+                >
+                  <item.icon active={isActive} />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">{children}</div>
-      </main>
-    </div>
+          {/* User & Logout */}
+          <div className="px-6 py-4 border-t border-border">
+            <p className="text-xs text-muted truncate">{user.email}</p>
+            <button
+              onClick={handleLogout}
+              className="mt-2 text-xs text-muted hover:text-primary transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-auto">
+          <div className="p-8">{children}</div>
+        </main>
+      </div>
+    </UserContext.Provider>
   );
 }
 
