@@ -25,7 +25,7 @@ cp -r "$OPENNEXT/middleware" "$ASSETS/"
 cp -r "$OPENNEXT/server-functions" "$ASSETS/"
 cp -r "$OPENNEXT/cloudflare" "$ASSETS/"
 
-# Create _worker.js from worker.js with these patches:
+# Create _worker.js from worker.js with patches:
 # 1. Strip Durable Object exports (can't resolve in Pages context)
 # 2. Inject static asset serving — serves CSS/JS/fonts from env.ASSETS
 sed \
@@ -34,7 +34,7 @@ sed \
   -e '/export { BucketCachePurge/d' \
   -e '/const url = new URL(request.url);/a\
 \
-            // Serve static assets (CSS, JS, fonts, images) via Pages ASSETS binding\
+            // Serve static assets (CSS, JS, fonts) via Pages ASSETS binding\
             // Without this, _worker.js catches all requests and static files 404\
             if (url.pathname.startsWith("/_next/static/") ||\
                 url.pathname.startsWith("/favicon.ico") ||\
