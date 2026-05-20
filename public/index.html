@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plate — QR Menus for Restaurants</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#faf8f5;
+  --surface:#fff;
+  --card:#fefdfb;
+  --border:#e7e0d8;
+  --primary:#d45d3a;
+  --primary-hover:#c44a2a;
+  --secondary:#2d5a27;
+  --text:#1c1917;
+  --muted:#78716c;
+  --gold:#c4943c;
+  --radius:16px;
+  --font-heading:'Playfair Display',serif;
+  --font-body:'Inter',sans-serif;
+}
+
+body{
+  font-family:var(--font-body);
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+
+/* === NAV === */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:16px 32px;background:rgba(250,248,245,0.92);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+nav .logo{
+  font-family:var(--font-heading);
+  font-size:24px;font-weight:700;color:var(--text);
+  text-decoration:none;letter-spacing:-0.5px;
+}
+nav .logo span{color:var(--primary);}
+nav .nav-links{display:flex;gap:32px;align-items:center;}
+nav .nav-links a{
+  font-size:14px;font-weight:500;color:var(--muted);
+  text-decoration:none;transition:color 0.2s;
+}
+nav .nav-links a:hover{color:var(--text);}
+nav .btn-nav{
+  padding:10px 20px;background:var(--primary);color:#fff;
+  border-radius:10px;font-size:13px;font-weight:600;
+  text-decoration:none;transition:all 0.2s;
+}
+nav .btn-nav:hover{background:var(--primary-hover);transform:translateY(-1px);}
+
+/* === HERO === */
+.hero{
+  min-height:100vh;display:flex;align-items:center;
+  padding:120px 48px 80px;position:relative;
+  background:linear-gradient(180deg,#fefdfb 0%,#faf8f5 30%,#f5f0e8 100%);
+}
+.hero-content{max-width:600px;position:relative;z-index:1;}
+.hero .badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;background:rgba(212,93,58,0.08);
+  border:1px solid rgba(212,93,58,0.15);
+  border-radius:100px;font-size:13px;font-weight:500;
+  color:var(--primary);margin-bottom:24px;
+}
+.hero h1{
+  font-family:var(--font-heading);
+  font-size:clamp(40px,6vw,72px);font-weight:700;
+  line-height:1.1;margin-bottom:20px;letter-spacing:-1px;
+}
+.hero h1 span{color:var(--primary);font-style:italic;}
+.hero p{
+  font-size:clamp(16px,2vw,20px);color:var(--muted);
+  max-width:480px;margin-bottom:36px;line-height:1.6;
+}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 28px;border-radius:12px;
+  font-size:15px;font-weight:600;text-decoration:none;
+  transition:all 0.2s;cursor:pointer;border:none;
+}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 4px 20px rgba(212,93,58,0.2);}
+.btn-primary:hover{background:var(--primary-hover);transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,93,58,0.3);}
+.btn-secondary{background:var(--surface);color:var(--primary);border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--primary);transform:translateY(-1px);}
+
+/* Hero visual — phone mockup */
+.hero-visual{
+  position:absolute;right:0;top:50%;transform:translateY(-50%);
+  width:380px;background:var(--surface);border-radius:32px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.08),0 0 0 1px var(--border);
+  padding:20px;overflow:hidden;
+}
+.hero-visual .phone-header{
+  text-align:center;padding:8px 0 16px;
+  font-family:var(--font-heading);font-size:13px;
+  color:var(--muted);border-bottom:1px solid var(--border);
+  margin-bottom:16px;
+}
+.hero-visual .menu-item{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:10px 0;border-bottom:1px solid #f0ebe0;
+}
+.hero-visual .menu-item .name{
+  font-size:14px;font-weight:500;
+}
+.hero-visual .menu-item .price{
+  font-family:var(--font-heading);font-size:14px;
+  color:var(--primary);font-weight:600;
+}
+.hero-visual .qrcode{
+  text-align:center;margin-top:16px;padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.hero-visual .qrcode .qr-placeholder{
+  width:80px;height:80px;margin:0 auto;
+  background:var(--text);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* === HOW IT WORKS === */
+.section{padding:100px 48px;max-width:1200px;margin:0 auto;}
+.section-header{text-align:center;margin-bottom:64px;}
+.section-header h2{
+  font-family:var(--font-heading);font-size:clamp(32px,4vw,48px);
+  font-weight:700;margin-bottom:12px;letter-spacing:-0.5px;
+}
+.section-header p{font-size:18px;color:var(--muted);max-width:500px;margin:0 auto;}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;}
+.step{text-align:center;padding:40px 24px;background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);}
+.step .num{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--primary);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-heading);font-size:24px;font-weight:700;
+  margin:0 auto 20px;
+}
+.step h3{font-family:var(--font-heading);font-size:20px;font-weight:600;margin-bottom:8px;}
+.step p{font-size:14px;color:var(--muted);line-height:1.6;}
+
+/* === FEATURES === */
+.features-bg{background:var(--surface);}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+.feature{text-align:center;padding:32px 24px;}
+.feature .icon{font-size:36px;margin-bottom:16px;}
+.feature h3{font-family:var(--font-heading);font-size:18px;font-weight:600;margin-bottom:8px;}
+.feature p{font-size:14px;color:var(--muted);line-height:1.6;}
+
+/* === PRICING === */
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px;}
+.pricing-card{
+  background:var(--surface);border-radius:var(--radius);
+  padding:40px 32px;border:1px solid var(--border);
+  text-align:center;position:relative;
+}
+.pricing-card.featured{
+  border-color:var(--primary);
+  box-shadow:0 20px 60px rgba(212,93,58,0.08);
+  transform:scale(1.03);
+}
+.pricing-card.featured::before{
+  content:'Most Popular';position:absolute;top:-13px;left:50%;transform:translateX(-50%);
+  padding:6px 20px;background:var(--primary);color:#fff;
+  border-radius:100px;font-size:12px;font-weight:600;
+}
+.pricing-card h3{font-family:var(--font-heading);font-size:22px;font-weight:600;margin-bottom:16px;}
+.pricing-card .price{
+  font-family:var(--font-heading);font-size:48px;font-weight:700;
+  margin-bottom:4px;
+}
+.pricing-card .price span{font-size:16px;color:var(--muted);font-weight:400;}
+.pricing-card .period{font-size:14px;color:var(--muted);margin-bottom:28px;}
+.pricing-card ul{list-style:none;text-align:left;margin-bottom:32px;}
+.pricing-card ul li{
+  padding:8px 0;font-size:14px;color:var(--muted);
+  display:flex;align-items:center;gap:8px;
+}
+.pricing-card ul li::before{content:'✓';color:var(--secondary);font-weight:700;}
+.pricing-card .btn{width:100%;justify-content:center;}
+
+/* === CTA === */
+.cta-section{
+  background:var(--text);color:#fff;
+  padding:100px 48px;text-align:center;
+}
+.cta-section h2{
+  font-family:var(--font-heading);font-size:clamp(32px,5vw,52px);
+  font-weight:700;margin-bottom:16px;
+}
+.cta-section p{font-size:18px;color:#a8a29e;margin-bottom:36px;max-width:500px;margin-left:auto;margin-right:auto;}
+.cta-section .btn-primary{background:#fff;color:var(--text);box-shadow:none;}
+.cta-section .btn-primary:hover{background:#f0ebe0;}
+
+/* === FOOTER === */
+footer{
+  padding:40px 48px;text-align:center;
+  border-top:1px solid var(--border);
+  font-size:14px;color:var(--muted);
+}
+footer a{color:var(--primary);text-decoration:none;}
+
+/* === MOBILE === */
+@media(max-width:1024px){
+  .hero-visual{display:none;}
+  .steps{grid-template-columns:1fr;}
+  .features-grid{grid-template-columns:1fr 1fr;}
+  .pricing-grid{grid-template-columns:1fr;}
+  .pricing-card.featured{transform:none;}
+}
+@media(max-width:768px){
+  nav{padding:12px 20px;}
+  nav .nav-links{display:none;}
+  .hero{padding:100px 24px 60px;}
+  .section{padding:60px 24px;}
+  .features-grid{grid-template-columns:1fr;}
+  .cta-section{padding:60px 24px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">Plate<span>.</span></a>
+  <div class="nav-links">
+    <a href="#how">How It Works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="https://plate-qr-menu.pages.dev/register" class="btn-nav">Get Started</a>
+  </div>
+</nav>
+
+<section class="hero" id="hero">
+  <div class="hero-content">
+    <div class="badge">🍽️ QR Menus Made Simple</div>
+    <h1>Your menu,<br><span>instantly scannable.</span></h1>
+    <p>Create a beautiful digital menu in minutes. Generate a QR code, print it, and let your customers browse — no app, no download, no hassle.</p>
+    <div class="hero-btns">
+      <a href="https://plate-qr-menu.pages.dev/register" class="btn btn-primary">Create Your Menu →</a>
+      <a href="#how" class="btn btn-secondary">See How It Works</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="phone-header">Antonella's Trattoria</div>
+    <div class="menu-item"><span class="name">Bruschetta al Pomodoro</span><span class="price">$12</span></div>
+    <div class="menu-item"><span class="name">Risotto ai Funghi</span><span class="price">$18</span></div>
+    <div class="menu-item"><span class="name">Ossobuco alla Milanese</span><span class="price">$28</span></div>
+    <div class="menu-item"><span class="name">Tiramisù Classico</span><span class="price">$9</span></div>
+    <div class="menu-item"><span class="name">Panna Cotta ai Frutti</span><span class="price">$8</span></div>
+    <div class="qrcode"><div class="qr-placeholder"></div><p style="font-size:11px;color:var(--muted);margin-top:8px;">Scan for full menu</p></div>
+  </div>
+</section>
+
+<section class="section" id="how">
+  <div class="section-header">
+    <h2>How It Works</h2>
+    <p>Get your digital menu live in under 5 minutes — no coding required.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="num">1</div>
+      <h3>Build Your Menu</h3>
+      <p>Add your dishes, descriptions, prices, and categories. Upload photos if you want. Our editor makes it effortless.</p>
+    </div>
+    <div class="step">
+      <div class="num">2</div>
+      <h3>Get Your QR Code</h3>
+      <p>We generate a unique QR code instantly. Download it, print it, stick it on every table.</p>
+    </div>
+    <div class="step">
+      <div class="num">3</div>
+      <h3>Customers Scan & Browse</h3>
+      <p>Anyone scans with their phone camera — no app needed. Your menu opens instantly. Beautiful, fast, always up to date.</p>
+    </div>
+  </div>
+</section>
+
+<section class="features-bg" id="features">
+  <div class="section">
+    <div class="section-header">
+      <h2>Everything You Need</h2>
+      <p>Built for restaurants, cafes, bars, and food trucks.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature"><div class="icon">📱</div><h3>No App Required</h3><p>Customers just point their phone camera. Works on iPhone and Android instantly.</p></div>
+      <div class="feature"><div class="icon">✏️</div><h3>Update Anytime</h3><p>Change prices, add specials, remove 86'd items. Menu updates instantly — no reprinting.</p></div>
+      <div class="feature"><div class="icon">📊</div><h3>Menu Analytics</h3><p>See which dishes get viewed most. Know what your customers are browsing.</p></div>
+      <div class="feature"><div class="icon">🌐</div><h3>Multi-Language</h3><p>Add translations. Tourists and locals both get a great experience.</p></div>
+      <div class="feature"><div class="icon">🎨</div><h3>Your Brand</h3><p>Custom colors, logo, and fonts. It looks like YOUR restaurant, not a template.</p></div>
+      <div class="feature"><div class="icon">🖨️</div><h3>Print-Ready QR</h3><p>Download high-res QR codes. Print on table tents, windows, flyers, anywhere.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <div class="section-header">
+    <h2>Simple, Honest Pricing</h2>
+    <p>No contracts. No hidden fees. Cancel anytime.</p>
+  </div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <h3>Starter</h3>
+      <div class="price">$19<span>/mo</span></div>
+      <div class="period">Perfect for food trucks & pop-ups</div>
+      <ul>
+        <li>1 menu page</li><li>Up to 30 items</li><li>QR code download</li><li>Basic analytics</li><li>Mobile-optimized</li>
+      </ul>
+      <a href="https://plate-qr-menu.pages.dev/register" class="btn btn-secondary">Start Free Trial</a>
+    </div>
+    <div class="pricing-card featured">
+      <h3>Pro</h3>
+      <div class="price">$39<span>/mo</span></div>
+      <div class="period">Best for restaurants & cafes</div>
+      <ul>
+        <li>Unlimited menus</li><li>Unlimited items</li><li>Menu photos & images</li><li>Full analytics dashboard</li><li>Custom branding & colors</li><li>Multi-language support</li><li>Priority support</li>
+      </ul>
+      <a href="https://plate-qr-menu.pages.dev/register" class="btn btn-primary">Start Free Trial</a>
+    </div>
+    <div class="pricing-card">
+      <h3>Enterprise</h3>
+      <div class="price">$79<span>/mo</span></div>
+      <div class="period">For restaurant groups & chains</div>
+      <ul>
+        <li>Everything in Pro</li><li>Multiple locations</li><li>Team accounts</li><li>API access</li><li>White-label option</li><li>Dedicated support</li>
+      </ul>
+      <a href="/admin" class="btn btn-secondary">Contact Us</a>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <h2>Ready to go digital?</h2>
+  <p>Join hundreds of restaurants that have ditched paper menus. Your customers are already scanning.</p>
+  <a href="https://plate-qr-menu.pages.dev/register" class="btn btn-primary">Create Your Free Menu →</a>
+</section>
+
+<footer>
+  <p><strong>Plate</strong> — QR Menus by RomeDigital</p>
+  <p style="margin-top:6px;">Washington, DC · <a href="mailto:hello@romedigital.tech">hello@romedigital.tech</a></p>
+</footer>
+
+</body>
+</html>
