@@ -47,15 +47,20 @@ export async function POST(request: Request) {
     // Create user
     const id = generateId();
     const passwordHash = await hashPassword(password);
+    
+    // Admin emails — these accounts get full admin access
+    const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'mbutler@romedigital.tech').split(',').map(e => e.trim().toLowerCase());
+    const isAdmin = ADMIN_EMAILS.includes(normalizedEmail) ? 1 : 0;
+    
     const result = await execute(
       `INSERT INTO users (id, email, password_hash, restaurant_name, plan, is_admin, is_active, created_at, updated_at)
-       VALUES (?, ?, ?, ?, 'free', 0, 1, ?, ?)`,
-      [id, normalizedEmail, passwordHash, restaurantName.trim(), now(), now()]
+       VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)`,
+      [id, normalizedEmail, passwordHash, restaurantName.trim(), isAdmin ? 'enterprise' : 'free', isAdmin, now(), now()]
     );
 
     if (!result.success) {
       return NextResponse.json(
-        { error: 'Failed to create account' },
+        { error: 'Failed to create account', detail: result.error },
         { status: 500 }
       );
     }
