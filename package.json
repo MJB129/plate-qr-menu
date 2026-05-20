@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "cf:build": "next build && npx @opennextjs/cloudflare build",
+    "cf:build": "next build && npx @opennextjs/cloudflare build && bash scripts/patch-opennext-mw.sh",
     "cf:deploy": "npx wrangler pages deploy .open-next/assets --project-name plate-qr-menu --branch master",
     "cf:all": "npm run cf:build && npm run cf:deploy"
   },

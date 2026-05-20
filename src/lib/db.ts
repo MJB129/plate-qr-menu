@@ -1,13 +1,15 @@
 // Plate Dashboard — D1 Database Client
 // Uses Cloudflare Workers D1 binding (available at env.DB in production)
 // For local dev, uses wrangler's local D1 via getPlatformProxy
+//
+// CRITICAL: D1's bind() returns a NEW PreparedStatement — always capture it!
+//   const bound = stmt.bind(...params);  ← correct
+//   stmt.bind(...params); await stmt.all(); ← BUG: discards return value
 
 let db: D1Database | null = null;
 
 export function getDB(): D1Database {
   if (!db) {
-    // In Cloudflare Pages Functions, env.DB is injected
-    // In local dev, @cloudflare/next-on-pages provides process.env
     throw new Error(
       'DB not initialized. Call initDB(env) first with the Cloudflare env bindings.'
     );
@@ -40,9 +42,13 @@ export function generateToken(): string {
   return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Escape SQL strings safely
-function escape(str: string): string {
-  return str.replace(/'/g, "''");
+// Helper: bind params (if any) and return the bound statement
+// Returns the ORIGINAL stmt if no params, or the NEW bound stmt from bind()
+function prepareAndBind(sql: string, params: unknown[]): D1PreparedStatement {
+  const stmt = db!.prepare(sql);
+  if (params.length === 0) return stmt;
+  // bind() returns a NEW D1PreparedStatement — always capture it
+  return stmt.bind(...params);
 }
 
 // Run a query and return all rows
@@ -50,14 +56,7 @@ export async function queryAll<T = Record<string, unknown>>(
   sql: string,
   params: unknown[] = []
 ): Promise<T[]> {
-  const db = getDB();
-  // Replace ? placeholders with numbered ones for D1
-  let idx = 0;
-  const prepared = sql.replace(/\?/g, () => `?${++idx}`);
-  const stmt = db.prepare(prepared);
-  if (params.length > 0) {
-    stmt.bind(...params);
-  }
+  const stmt = prepareAndBind(sql, params);
   const result = await stmt.all();
   if (!result.success) {
     console.error('Query failed:', sql, result.error);
@@ -80,13 +79,7 @@ export async function execute(
   sql: string,
   params: unknown[] = []
 ): Promise<{ success: boolean; error?: string }> {
-  const db = getDB();
-  let idx = 0;
-  const prepared = sql.replace(/\?/g, () => `?${++idx}`);
-  const stmt = db.prepare(prepared);
-  if (params.length > 0) {
-    stmt.bind(...params);
-  }
+  const stmt = prepareAndBind(sql, params);
   try {
     const result = await stmt.run();
     return { success: result.success, error: result.error || undefined };

@@ -82,7 +82,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error('Register error:', err);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', detail: String(err) },
       { status: 500 }
     );
   }
