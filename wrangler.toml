@@ -1,0 +1,8 @@
+name = "plate-dashboard"
+main = ".open-next/worker.js"
+compatibility_date = "2025-05-20"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "plate-db"
+database_id = "b8d36542-c17e-4065-b5a1-ea1ff8d3422a"
