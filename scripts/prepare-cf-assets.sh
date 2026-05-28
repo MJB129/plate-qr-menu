@@ -6,14 +6,14 @@
 # Pages Worker. We also need middleware/ and server-functions/ for the
 # worker to resolve its imports at compile time.
 #
-# Also strips Durable Object exports from worker.js since we don't use them,
-# and injects static asset serving code for CSS/JS/fonts.
+# A _routes.json file is generated so Cloudflare Pages CDN serves all
+# /_next/static/* requests directly without hitting the worker —
+# this is the primary mechanism for reliable CSS/JS delivery.
 
 set -e
 
 OPENNEXT=".open-next"
 ASSETS="$OPENNEXT/assets"
-WORKER_JS="$ASSETS/_worker.js"
 
 if [ ! -f "$OPENNEXT/worker.js" ]; then
   echo "ERROR: $OPENNEXT/worker.js not found — run cf:build first" >&2
@@ -25,27 +25,36 @@ cp -r "$OPENNEXT/middleware" "$ASSETS/"
 cp -r "$OPENNEXT/server-functions" "$ASSETS/"
 cp -r "$OPENNEXT/cloudflare" "$ASSETS/"
 
-# Create _worker.js from worker.js with patches:
-# 1. Strip Durable Object exports (can't resolve in Pages context)
-# 2. Inject static asset serving — serves CSS/JS/fonts from env.ASSETS
-sed \
-  -e '/export { DOQueueHandler/d' \
-  -e '/export { DOShardedTagCache/d' \
-  -e '/export { BucketCachePurge/d' \
-  -e '/const url = new URL(request.url);/a\
-\
-            // Serve static assets (CSS, JS, fonts) via Pages ASSETS binding\
-            // Without this, _worker.js catches all requests and static files 404\
-            if (url.pathname.startsWith("/_next/static/") ||\
-                url.pathname.startsWith("/favicon.ico") ||\
-                url.pathname.match(/\\.(css|js|woff2?|png|jpg|svg|ico|json)$/)) {\
-                try {\
-                    const asset = await env.ASSETS.fetch(request);\
-                    if (asset && asset.ok) return asset;\
-                } catch (e) { /* fall through */ }\
-            }' \
-  "$OPENNEXT/worker.js" > "$WORKER_JS"
+# Patch worker.js using the Node.js script (handles CRLF and all OpenNext formats)
+node "$(dirname "$0")/patch-worker.mjs" "$OPENNEXT/worker.js" "$ASSETS/_worker.js"
 
-echo "✓ Copied worker + middleware + server-functions into $ASSETS/"
-echo "  _worker.js (patched: static assets, no DO exports)"
+echo "  _worker.js (patched: static asset fallback, no DO exports)"
 echo "  middleware/, server-functions/, cloudflare/"
+
+# Generate _routes.json so Cloudflare Pages CDN serves static assets
+# directly without invoking the worker — most reliable path for CSS/font/JS.
+cat > "$ASSETS/_routes.json" << 'ROUTESEOF'
+{
+  "version": 1,
+  "include": ["/*"],
+  "exclude": [
+    "/_next/static/*",
+    "/favicon.ico",
+    "/*.jpg",
+    "/*.jpeg",
+    "/*.png",
+    "/*.gif",
+    "/*.svg",
+    "/*.ico",
+    "/*.woff",
+    "/*.woff2",
+    "/*.ttf",
+    "/*.otf",
+    "/*.webp"
+  ]
+}
+ROUTESEOF
+
+echo "  _routes.json (/_next/static/* bypasses worker via CDN)"
+echo ""
+echo "✓ Cloudflare Pages assets ready in $ASSETS/"
