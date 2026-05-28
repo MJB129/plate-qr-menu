@@ -330,11 +330,6 @@ export default function LandingPage() {
       <footer className="border-t border-[#e7e0d8] bg-cream py-8 sm:py-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
           <div className="flex items-center gap-2">
-<<<<<<< HEAD
-            <div className="w-7 h-7 bg-secondary rounded-md flex items-center justify-center">
-              <span className="text-cream font-bold text-xs font-heading">P</span>
-            </div>
-=======
             <Image
               src="/plate-logo.jpg"
               alt="Plate"
@@ -342,7 +337,6 @@ export default function LandingPage() {
               height={28}
               className="rounded-md"
             />
->>>>>>> 7d2b84f (Add Plate logo to landing page)
             <span className="font-semibold text-text">Plate</span>
           </div>
           <p className="text-sm text-muted">
