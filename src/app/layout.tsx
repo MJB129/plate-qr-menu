@@ -19,30 +19,10 @@ export const metadata: Metadata = {
   description: "Create and manage beautiful QR-code digital menus for your restaurant.",
 };
 
-const css = `/* Plate by RomeDigital — Brand Theme */
-:root {
-  --background: #faf8f5;
-  --foreground: #1c1917;
-  --color-cream: #faf8f5;
-  --color-surface: #ffffff;
-  --color-card: #fefdfb;
-  --color-border: #e7e0d8;
-  --color-primary: #d45d3a;
-  --color-primary-hover: #c44a2a;
-  --color-secondary: #2d5a27;
-  --color-gold: #c4943c;
-  --color-text: #1c1917;
-  --color-muted: #78716c;
-  --radius-xl: 16px;
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-body, Inter), sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}`;
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export default function RootLayout({
   children,
@@ -54,8 +34,43 @@ export default function RootLayout({
       lang="en"
       className={`${playfairDisplay.variable} ${inter.variable} h-full antialiased`}
     >
+      <head>
+        <style>{`
+          /* Critical inline styles — ensures UI always renders */
+          :root {
+            --background: #faf8f5;
+            --foreground: #1c1917;
+            --color-cream: #faf8f5;
+            --color-surface: #ffffff;
+            --color-card: #fefdfb;
+            --color-border: #e7e0d8;
+            --color-primary: #d45d3a;
+            --color-primary-hover: #c44a2a;
+            --color-secondary: #2d5a27;
+            --color-gold: #c4943c;
+            --color-text: #1c1917;
+            --color-muted: #78716c;
+            --radius-xl: 16px;
+          }
+          body {
+            background: var(--background);
+            color: var(--foreground);
+            font-family: ${inter.style.fontFamily}, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            margin: 0;
+          }
+          .min-h-screen { min-height: 100vh; }
+          .flex { display: flex; }
+          .flex-col { flex-direction: column; }
+          .bg-cream { background-color: var(--background); }
+          .bg-surface { background-color: var(--color-surface); }
+          .text-text { color: var(--color-text); }
+          .text-muted { color: var(--color-muted); }
+          .border-border { border-color: var(--color-border); }
+        `}</style>
+      </head>
       <body className="min-h-full flex flex-col">
-        <style>{css}</style>
         {children}
       </body>
     </html>

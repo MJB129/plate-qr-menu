@@ -42,11 +42,42 @@ export async function POST(request: Request) {
 
     const user = await getCurrentUser();
     if (!user) {
+      const ct = request.headers.get('content-type') || '';
+      if (ct.includes('form-urlencoded') || ct.includes('multipart/form-data')) {
+        return new Response('<html><body><meta http-equiv="refresh" content="0;url=/auth"></body></html>', {
+          status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, slug, theme } = body;
+    let name: string, slug: string | undefined, theme: string | undefined;
+
+    const ct = request.headers.get('content-type') || '';
+    const isForm = ct.includes('form-urlencoded') || ct.includes('multipart/form-data');
+
+    // Read body text once to avoid consuming the body stream
+    const bodyText = await request.text();
+
+    if (isForm) {
+      const params = new URLSearchParams(bodyText);
+      name = (params.get('name') || '').trim();
+      slug = params.get('slug') || undefined;
+      theme = params.get('theme') || undefined;
+    } else {
+      try {
+        const body = JSON.parse(bodyText);
+        name = body.name;
+        slug = body.slug;
+        theme = body.theme;
+      } catch {
+        // Try URLSearchParams as fallback
+        const params = new URLSearchParams(bodyText);
+        name = (params.get('name') || '').trim();
+        slug = params.get('slug') || undefined;
+        theme = params.get('theme') || undefined;
+      }
+    }
 
     // Validate
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -106,12 +137,23 @@ export async function POST(request: Request) {
       [id]
     );
 
+    if (isForm) {
+      return new Response(`<html><body><meta http-equiv="refresh" content="0;url=/dashboard/menus/new?id=${id}"></body></html>`, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
+    }
+
     return NextResponse.json({ menu }, { status: 201 });
   } catch (err) {
     console.error('POST /api/menus error:', err);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    try {
+      const clone = request.clone();
+      const text = await clone.text();
+      return NextResponse.json({ error: 'Internal server error', detail: msg, body: text }, { status: 500 });
+    } catch {
+      return NextResponse.json({ error: 'Internal server error', detail: msg }, { status: 500 });
+    }
   }
 }

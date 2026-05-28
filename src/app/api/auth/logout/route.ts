@@ -6,7 +6,7 @@ import { initDBFromEnv } from '@/lib/env';
 
 const SESSION_COOKIE = 'plate_session';
 
-export async function POST(_request: Request) {
+export async function POST(request: Request) {
   try {
     await initDBFromEnv();
 
@@ -17,11 +17,21 @@ export async function POST(_request: Request) {
       await destroySession(sessionToken);
     }
 
+    const isForm = request.headers.get('content-type')?.includes('application/x-www-form-urlencoded') ||
+                   request.headers.get('content-type')?.includes('multipart/form-data');
+
+    if (isForm) {
+      const html = `<html><body><meta http-equiv="refresh" content="0;url=/auth">Signed out.</body></html>`;
+      const [key, val] = clearSessionHeader();
+      return new Response(html, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', [key]: val },
+      });
+    }
+
     const response = NextResponse.json({ success: true });
-
-    const [cookieKey, cookieValue] = clearSessionHeader();
-    response.headers.set(cookieKey, cookieValue);
-
+    const [key, val] = clearSessionHeader();
+    response.headers.set(key, val);
     return response;
   } catch (err) {
     console.error('Logout error:', err);

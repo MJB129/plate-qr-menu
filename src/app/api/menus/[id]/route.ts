@@ -123,18 +123,54 @@ export async function PUT(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    const body = await request.json();
-    const { name, theme, is_published } = body;
+    const isForm = request.headers.get('content-type')?.includes('form-urlencoded') ||
+                   request.headers.get('content-type')?.includes('multipart/form-data');
+
+    // Read body text once to avoid consuming the stream
+    const bodyText = await request.text();
+
+    let name: string | undefined;
+    let theme: string | undefined;
+    let is_published: number | undefined;
+
+    if (isForm) {
+      const params = new URLSearchParams(bodyText);
+      const n = params.get('name');
+      if (n !== null) name = n;
+      const t = params.get('theme');
+      if (t !== null) theme = t;
+      const p = params.get('is_published');
+      if (p !== null) is_published = parseInt(p);
+    } else {
+      try {
+        const body = JSON.parse(bodyText);
+        name = body.name;
+        theme = body.theme;
+        is_published = body.is_published;
+      } catch {
+        // Fallback: try URLSearchParams
+        const params = new URLSearchParams(bodyText);
+        const n = params.get('name');
+        if (n !== null) name = n;
+        const t = params.get('theme');
+        if (t !== null) theme = t;
+        const p = params.get('is_published');
+        if (p !== null) is_published = parseInt(p);
+      }
+    }
 
     const updates: string[] = [];
     const values: unknown[] = [];
 
     if (name !== undefined) {
       if (typeof name !== 'string' || name.trim().length === 0) {
-        return NextResponse.json(
-          { error: 'Menu name cannot be empty' },
-          { status: 400 }
-        );
+        const err = 'Menu name cannot be empty';
+        if (isForm) {
+          return new Response(`<html><body><meta http-equiv="refresh" content="0;url=/dashboard/menus/new?id=${id}&error=${encodeURIComponent(err)}"></body></html>`, {
+            status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' },
+          });
+        }
+        return NextResponse.json({ error: err }, { status: 400 });
       }
       updates.push('name = ?');
       values.push(name.trim());
@@ -151,10 +187,13 @@ export async function PUT(
     }
 
     if (updates.length === 0) {
-      return NextResponse.json(
-        { error: 'No fields to update' },
-        { status: 400 }
-      );
+      const err = 'No fields to update';
+      if (isForm) {
+        return new Response(`<html><body><meta http-equiv="refresh" content="0;url=/dashboard/menus/new?id=${id}&error=${encodeURIComponent(err)}"></body></html>`, {
+          status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+      return NextResponse.json({ error: err }, { status: 400 });
     }
 
     updates.push('updated_at = ?');
@@ -167,10 +206,20 @@ export async function PUT(
     );
 
     if (!result.success) {
-      return NextResponse.json(
-        { error: 'Failed to update menu' },
-        { status: 500 }
-      );
+      const err = 'Failed to update menu';
+      if (isForm) {
+        return new Response(`<html><body><meta http-equiv="refresh" content="0;url=/dashboard/menus/new?id=${id}&error=${encodeURIComponent(err)}"></body></html>`, {
+          status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
+      }
+      return NextResponse.json({ error: err }, { status: 500 });
+    }
+
+    if (isForm) {
+      return new Response(`<html><body><meta http-equiv="refresh" content="0;url=/dashboard/menus/new?id=${id}"></body></html>`, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      });
     }
 
     const updated = await queryFirst(
@@ -234,4 +283,12 @@ export async function DELETE(
       { status: 500 }
     );
   }
+}
+
+// POST handler for form-based updates (menu builder uses method="POST")
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return PUT(request, { params });
 }

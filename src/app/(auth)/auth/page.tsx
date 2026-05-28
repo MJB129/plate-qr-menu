@@ -1,41 +1,16 @@
-'use client';
-
-import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+// Server-rendered login page — works without JavaScript hydration
+// Uses native <form> POST to /api/auth/login
+// The API validates credentials and returns HTML that sets cookie + redirects
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || 'Invalid email or password');
-        setLoading(false);
-        return;
-      }
-
-      // Redirect on success
-      window.location.href = data.redirect || '/dashboard';
-    } catch {
-      setError('Something went wrong. Please try again.');
-      setLoading(false);
-    }
-  }
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const params = await searchParams;
+  const error = params.error ? decodeURIComponent(params.error) : null;
 
   return (
     <>
@@ -55,7 +30,7 @@ export default function LoginPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form method="POST" action="/api/auth/login" className="space-y-4">
         {/* Email */}
         <div>
           <label
@@ -66,9 +41,8 @@ export default function LoginPage() {
           </label>
           <input
             id="email"
+            name="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="you@restaurant.com"
             className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors text-sm"
@@ -85,9 +59,8 @@ export default function LoginPage() {
           </label>
           <input
             id="password"
+            name="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Enter your password"
             className="w-full px-4 py-3 rounded-xl border border-border bg-surface text-text placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors text-sm"
@@ -97,10 +70,9 @@ export default function LoginPage() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={loading}
-          className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/30 transition-colors"
         >
-          {loading ? 'Signing in…' : 'Sign In'}
+          Sign In
         </button>
       </form>
 

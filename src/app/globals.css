@@ -1,12 +1,9 @@
 @import "tailwindcss";
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-body);
-  --font-heading: var(--font-heading);
-  
-  /* Plate Restaurant Theme */
+/* Plate by RomeDigital — Brand Theme v2 */
+:root {
+  --background: #faf8f5;
+  --foreground: #1c1917;
   --color-cream: #faf8f5;
   --color-surface: #ffffff;
   --color-card: #fefdfb;
@@ -20,9 +17,22 @@
   --radius-xl: 16px;
 }
 
-:root {
-  --background: #faf8f5;
-  --foreground: #1c1917;
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
+  --color-cream: #faf8f5;
+  --color-surface: #ffffff;
+  --color-card: #fefdfb;
+  --color-border: #e7e0d8;
+  --color-primary: #d45d3a;
+  --color-primary-hover: #c44a2a;
+  --color-secondary: #2d5a27;
+  --color-gold: #c4943c;
+  --color-text: #1c1917;
+  --color-muted: #78716c;
+  --radius-xl: 16px;
 }
 
 body {
@@ -32,3 +42,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Force fresh CSS hash */
+._cf0 { display: none; }
+

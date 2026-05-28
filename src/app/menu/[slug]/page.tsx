@@ -48,7 +48,7 @@ export default async function PublicMenuPage({
     return (
       <MenuShell>
         <div className="text-center py-20">
-          <h1 className="text-3xl font-serif text-stone-400 mb-4">
+          <h1 className="text-2xl sm:text-3xl font-serif text-stone-400 mb-4">
             Menu Not Found
           </h1>
           <p className="text-stone-400">
@@ -84,24 +84,24 @@ export default async function PublicMenuPage({
   return (
     <MenuShell>
       {/* Restaurant header */}
-      <div className="text-center mb-12">
-        <h1 className={`text-4xl font-serif font-bold ${themeStyles.heading}`}>
+      <div className="text-center mb-8 sm:mb-12">
+        <h1 className={`text-3xl sm:text-4xl font-serif font-bold ${themeStyles.heading}`}>
           {menu.name}
         </h1>
-        <div className={`w-16 h-0.5 mx-auto mt-4 ${themeStyles.accentBg}`} />
+        <div className={`w-12 sm:w-16 h-0.5 mx-auto mt-3 sm:mt-4 ${themeStyles.accentBg}`} />
       </div>
 
       {/* Categories & Items */}
-      <div className="space-y-10">
+      <div className="space-y-8 sm:space-y-10">
         {categoriesWithItems.map((cat) => (
           <div key={cat.id}>
             <h2
-              className={`text-xl font-serif font-semibold mb-2 ${themeStyles.categoryHeading}`}
+              className={`text-lg sm:text-xl font-serif font-semibold mb-2 ${themeStyles.categoryHeading}`}
             >
               {cat.name}
             </h2>
             {cat.description && (
-              <p className="text-sm text-stone-400 italic mb-4">
+              <p className="text-sm text-stone-400 italic mb-3 sm:mb-4">
                 {cat.description}
               </p>
             )}
@@ -109,26 +109,26 @@ export default async function PublicMenuPage({
               {cat.items.map((item) => (
                 <div
                   key={item.id}
-                  className="flex justify-between items-start gap-4 py-3 border-b border-stone-100 last:border-0"
+                  className="flex justify-between items-start gap-3 py-3 border-b border-stone-100 last:border-0"
                 >
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-stone-800">
+                    <h3 className="font-medium text-stone-800 text-sm sm:text-base">
                       {item.name}
                       {item.dietary_tags && item.dietary_tags !== '[]' && (
-                        <span className="ml-2 text-xs text-stone-400">
+                        <span className="ml-1.5 text-[10px] sm:text-xs text-stone-400">
                           {formatTags(item.dietary_tags)}
                         </span>
                       )}
                     </h3>
                     {item.description && (
-                      <p className="text-sm text-stone-400 mt-0.5">
+                      <p className="text-xs sm:text-sm text-stone-400 mt-0.5">
                         {item.description}
                       </p>
                     )}
                   </div>
                   {item.price > 0 && (
                     <span
-                      className={`font-serif text-lg font-semibold whitespace-nowrap ${themeStyles.price}`}
+                      className={`font-serif text-base sm:text-lg font-semibold whitespace-nowrap ${themeStyles.price}`}
                     >
                       ${item.price.toFixed(2)}
                     </span>
@@ -141,7 +141,7 @@ export default async function PublicMenuPage({
       </div>
 
       {/* Footer */}
-      <div className="text-center mt-16 pt-8 border-t border-stone-200">
+      <div className="text-center mt-12 sm:mt-16 pt-6 sm:pt-8 border-t border-stone-200">
         <p className="text-xs text-stone-300">Powered by Plate — RomeDigital</p>
       </div>
     </MenuShell>
@@ -188,7 +188,6 @@ function getThemeStyles(theme: string) {
 }
 
 // Lightweight wrapper for the public menu page
-// DO NOT render <html>/<body> — Next.js root layout handles that
 function MenuShell({ children }: { children: React.ReactNode }) {
   return (
     <>
@@ -197,7 +196,7 @@ function MenuShell({ children }: { children: React.ReactNode }) {
         .font-serif { font-family: 'Playfair Display', serif; }
       `}</style>
       <div className="min-h-screen bg-[#fefdfb]">
-        <div className="max-w-2xl mx-auto px-6 py-12">{children}</div>
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">{children}</div>
       </div>
     </>
   );
@@ -207,7 +206,7 @@ function formatTags(tagsJson: string): string {
   try {
     const tags = JSON.parse(tagsJson);
     if (Array.isArray(tags)) {
-      return tags.map((t: string) => t.replace(/^"(.*)"$/, '$1')).join(' · ');
+      return tags.map((t: string) => t.replace(/^\"(.*)\"$/, '$1')).join(' · ');
     }
   } catch {
     // ignore
