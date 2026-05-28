@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 import {
   queryFirst,
   execute,
-  generateId,
   hashPassword,
+  generateId,
   now,
 } from '@/lib/db';
 import { createSession, sessionCookieHeader, safeUser } from '@/lib/auth';
@@ -45,8 +45,8 @@ export async function POST(request: Request) {
     }
 
     // Create user
-    const id = generateId();
     const passwordHash = await hashPassword(password);
+    const id = generateId();
     
     // Admin emails — these accounts get full admin access
     const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'mbutler@romedigital.tech').split(',').map(e => e.trim().toLowerCase());
