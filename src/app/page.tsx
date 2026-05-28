@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { QrCode, BarChart3, Globe, Zap, Shield, Smartphone } from "lucide-react";
 
 export default function LandingPage() {
@@ -8,9 +9,13 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-40 bg-cream/95 backdrop-blur border-b border-[#e7e0d8]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-secondary rounded-lg flex items-center justify-center">
-              <span className="text-cream font-bold text-sm font-heading">P</span>
-            </div>
+            <Image
+              src="/plate-logo.jpg"
+              alt="Plate"
+              width={32}
+              height={32}
+              className="rounded-lg"
+            />
             <span className="font-semibold text-text text-lg">Plate</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm text-[#4a3f35]">
@@ -312,9 +317,19 @@ export default function LandingPage() {
       <footer className="border-t border-[#e7e0d8] bg-cream py-10">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
+<<<<<<< HEAD
             <div className="w-7 h-7 bg-secondary rounded-md flex items-center justify-center">
               <span className="text-cream font-bold text-xs font-heading">P</span>
             </div>
+=======
+            <Image
+              src="/plate-logo.jpg"
+              alt="Plate"
+              width={28}
+              height={28}
+              className="rounded-md"
+            />
+>>>>>>> 7d2b84f (Add Plate logo to landing page)
             <span className="font-semibold text-text">Plate</span>
           </div>
           <p className="text-sm text-muted">
