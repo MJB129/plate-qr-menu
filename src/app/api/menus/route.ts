@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 import { queryAll, queryFirst, execute, generateId, now } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { initDBFromEnv } from '@/lib/env';
+import { checkMenuLimit } from '@/lib/plan-limits';
 
 export async function GET() {
   try {
@@ -41,9 +42,9 @@ export async function POST(request: Request) {
     await initDBFromEnv();
 
     const user = await getCurrentUser();
+    const isForm = (request.headers.get('content-type') || '').includes('form');
     if (!user) {
-      const ct = request.headers.get('content-type') || '';
-      if (ct.includes('form-urlencoded') || ct.includes('multipart/form-data')) {
+      if (isForm) {
         return new Response('<html><body><meta http-equiv="refresh" content="0;url=/auth"></body></html>', {
           status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' },
         });
@@ -51,10 +52,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    let name: string, slug: string | undefined, theme: string | undefined;
+    // Plan limit check
+    const menuCheck = await checkMenuLimit(user.id, user.plan);
+    if (!menuCheck.allowed) {
+      const msg = `Plan limit reached. Your ${user.plan} plan allows ${menuCheck.limit} menu${menuCheck.limit === 1 ? '' : 's'}.`;
+      if (isForm) {
+        return new Response(
+          `<html><body><meta http-equiv="refresh" content="0;url=/dashboard/menus?error=${encodeURIComponent(msg)}"></body></html>`,
+          { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+        );
+      }
+      return NextResponse.json(
+        { error: msg, code: 'PLAN_LIMIT', resource: 'menus', limit: menuCheck.limit, current: menuCheck.current },
+        { status: 403 }
+      );
+    }
 
-    const ct = request.headers.get('content-type') || '';
-    const isForm = ct.includes('form-urlencoded') || ct.includes('multipart/form-data');
+    let name: string, slug: string | undefined, theme: string | undefined;
 
     // Read body text once to avoid consuming the body stream
     const bodyText = await request.text();

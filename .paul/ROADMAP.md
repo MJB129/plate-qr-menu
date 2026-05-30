@@ -15,7 +15,7 @@ Phases: 0 of 6 complete
 | Phase | Name | Plans | Status | Completed |
 |-------|------|-------|--------|-----------|
 | 1 | Foundation | 2 | Planning | - |
-| 2 | Plan Limits | TBD | Not started | - |
+| 2 | Plan Limits | 2 | Planning | - |
 | 3 | Stripe Billing | TBD | Not started | - |
 | 4 | Transactional Email | TBD | Not started | - |
 | 5 | QR Scan Analytics | TBD | Not started | - |
@@ -52,7 +52,8 @@ Phases: 0 of 6 complete
 - Plan status readable from session
 
 **Plans:**
-- [ ] 02-01: To be defined during /paul:plan
+- [ ] 02-01: Plan limits utility + API enforcement
+- [ ] 02-02: Page action enforcement + upgrade prompt UI
 
 ### Phase 3: Stripe Billing
 

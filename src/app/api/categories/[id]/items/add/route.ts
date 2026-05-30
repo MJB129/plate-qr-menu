@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { execute, generateId, queryFirst, now } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { initDBFromEnv } from '@/lib/env';
+import { checkItemLimit } from '@/lib/plan-limits';
 
 export async function POST(
   request: NextRequest,
@@ -35,6 +36,16 @@ export async function POST(
     const menu = await queryFirst<{ user_id: string }>('SELECT user_id FROM menus WHERE id = ?', [menuId]);
     if (!menu || menu.user_id !== user.id) {
       return new Response(`<html><body><meta http-equiv="refresh" content="0;url=${redirectBase}&error=Not+found"></body></html>`, { status: 200, headers: { 'Content-Type': 'text/html' } });
+    }
+
+    // Plan limit check
+    const itemCheck = await checkItemLimit(user.id, user.plan);
+    if (!itemCheck.allowed) {
+      const msg = `Plan limit reached. Your ${user.plan} plan allows ${itemCheck.limit} items total.`;
+      return new Response(
+        `<html><body><meta http-equiv="refresh" content="0;url=${redirectBase}&error=${encodeURIComponent(msg)}"></body></html>`,
+        { status: 200, headers: { 'Content-Type': 'text/html' } }
+      );
     }
 
     // Parse dietary tags from form (comma separated)

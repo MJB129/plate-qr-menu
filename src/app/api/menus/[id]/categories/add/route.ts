@@ -4,6 +4,7 @@ import { execute, generateId, queryFirst, now } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { initDBFromEnv } from '@/lib/env';
 import { isTrue } from '@/lib/db';
+import { checkCategoryLimit } from '@/lib/plan-limits';
 
 export async function POST(
   request: NextRequest,
@@ -29,6 +30,16 @@ export async function POST(
     const menu = await queryFirst<{ user_id: string }>('SELECT user_id FROM menus WHERE id = ?', [id]);
     if (!menu || menu.user_id !== user.id) {
       return new Response(`<html><body><meta http-equiv="refresh" content="0;url=/dashboard/menus/new?id=${id}&error=Not+found"></body></html>`, { status: 200, headers: { 'Content-Type': 'text/html' } });
+    }
+
+    // Plan limit check
+    const catCheck = await checkCategoryLimit(id, user.plan);
+    if (!catCheck.allowed) {
+      const msg = `Plan limit reached. Your ${user.plan} plan allows ${catCheck.limit} categories per menu.`;
+      return new Response(
+        `<html><body><meta http-equiv="refresh" content="0;url=/dashboard/menus/new?id=${id}&error=${encodeURIComponent(msg)}"></body></html>`,
+        { status: 200, headers: { 'Content-Type': 'text/html' } }
+      );
     }
 
     // Get max sort_order

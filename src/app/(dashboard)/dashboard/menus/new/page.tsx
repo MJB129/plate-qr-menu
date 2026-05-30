@@ -2,6 +2,7 @@ import { initDBFromEnv } from '@/lib/env';
 import { queryAll, queryFirst, execute, generateId, now, isTrue, toInt } from '@/lib/db';
 import { getCurrentUser } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { checkMenuLimit, checkCategoryLimit, checkItemLimit } from '@/lib/plan-limits';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,6 +61,11 @@ export default async function MenuBuilderPage({
     const existing = await queryFirst<{ id: string }>('SELECT id FROM menus WHERE user_id = ? AND slug = ?', [user.id, slug]);
     if (existing) redirect(`/dashboard/menus/new?error=${encodeURIComponent('A menu with this slug already exists.')}`);
 
+    const menuCheck = await checkMenuLimit(user.id, user.plan);
+    if (!menuCheck.allowed) {
+      redirect(`/dashboard/menus/new?error=${encodeURIComponent(`Plan limit reached. Your ${user.plan} plan allows ${menuCheck.limit} menu${menuCheck.limit === 1 ? '' : 's'}.`)}`);
+    }
+
     const id = generateId();
     const ts = now();
     await execute(
@@ -105,6 +111,11 @@ export default async function MenuBuilderPage({
     const menu = await queryFirst<{ id: string; user_id: string }>('SELECT id, user_id FROM menus WHERE id = ?', [id]);
     if (!menu || menu.user_id !== user.id) redirect('/dashboard/menus');
 
+    const catCheck = await checkCategoryLimit(id, user.plan);
+    if (!catCheck.allowed) {
+      redirect(`/dashboard/menus/new?id=${id}&error=${encodeURIComponent(`Plan limit reached. Your ${user.plan} plan allows ${catCheck.limit} categories per menu.`)}`);
+    }
+
     const description = (params.description as string || '').trim();
     const maxSort = await queryFirst<{ m: number }>('SELECT COALESCE(MAX(sort_order), -1) + 1 as m FROM menu_categories WHERE menu_id = ?', [id]);
 
@@ -126,6 +137,11 @@ export default async function MenuBuilderPage({
 
     const menu = await queryFirst<{ id: string; user_id: string }>('SELECT id, user_id FROM menus WHERE id = ?', [id]);
     if (!menu || menu.user_id !== user.id) redirect('/dashboard/menus');
+
+    const itemCheck = await checkItemLimit(user.id, user.plan);
+    if (!itemCheck.allowed) {
+      redirect(`/dashboard/menus/new?id=${id}&error=${encodeURIComponent(`Plan limit reached. Your ${user.plan} plan allows ${itemCheck.limit} items total.`)}`);
+    }
 
     const description = (params.description as string || '').trim();
     const price = parseFloat(params.price as string) || 0;
