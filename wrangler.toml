@@ -5,5 +5,5 @@ compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "plate-db-v2"
-database_id = "95b57144-a46f-4703-bd73-be5081d66829"
+database_name = "plate-db-staging"
+database_id = "f78b4874-2b55-4092-ba6f-1c6b27e64f48"
