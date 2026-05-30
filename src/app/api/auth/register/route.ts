@@ -1,5 +1,5 @@
 // POST /api/auth/register — Create account
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import {
   queryFirst,
   execute,
@@ -9,9 +9,14 @@ import {
 } from '@/lib/db';
 import { createSession, sessionCookieHeader, safeUser } from '@/lib/auth';
 import { initDBFromEnv } from '@/lib/env';
+import { rateLimitOrRespond } from '@/lib/with-rate-limit';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimited = await rateLimitOrRespond(request, 'auth');
+    if (rateLimited) return rateLimited;
+
     await initDBFromEnv();
     const { email, password, restaurantName } = await request.json();
 

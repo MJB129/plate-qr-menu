@@ -1,12 +1,17 @@
 // POST /api/auth/login — Sign in
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { queryFirst, hashPassword } from '@/lib/db';
 import { createSession, sessionCookieHeader, safeUser } from '@/lib/auth';
 import type { User } from '@/lib/auth';
 import { initDBFromEnv } from '@/lib/env';
+import { rateLimitOrRespond } from '@/lib/with-rate-limit';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // Rate limiting
+    const rateLimited = await rateLimitOrRespond(request, 'auth');
+    if (rateLimited) return rateLimited;
+
     await initDBFromEnv();
 
     const contentType = request.headers.get('content-type') || '';
